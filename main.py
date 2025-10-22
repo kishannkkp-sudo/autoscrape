@@ -11,7 +11,6 @@ import logging
 # ----- CONFIG -----
 INDIA_COUNTRY_FACET_ID = "c4f78be1a8f14da0ab49ce1162348a5e"  # Standard Workday facet ID for India
 BACKEND_URL = os.environ.get('BACKEND_URL', "https://autopostnodejs.vercel.app/posts")  # URL of the Node.js backend
-SLEEP_SECONDS = int(os.environ.get('SLEEP_SECONDS', 3600))  # Sleep time between cycles in seconds
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -294,46 +293,40 @@ def create_post(title, content_html, logo_url=None, max_retries=3, retry_delay=6
     return None
 
 def main():
-    while True:
-        target_date = datetime.date.today().isoformat()
-        logger.info(f"Fetching jobs posted today ({target_date})...")
-        random.shuffle(COMPANIES)
-        posted_count = 0
+    target_date = datetime.date.today().isoformat()
+    logger.info(f"Fetching jobs posted today ({target_date})...")
+    random.shuffle(COMPANIES)
+    posted_count = 0
 
-        for company in COMPANIES:
-            logger.info(f"Processing {company['name']}...")
-            jobs = fetch_past_jobs(company['name'], company['url'], target_date)
-            for job in jobs:
-                post_title = generate_post_title(job)
-                if check_existing_post(post_title, job['apply_link']):
-                    logger.info(f"Skipping {post_title} as it already exists.")
-                    continue
-                logo_url = get_company_logo(company['name'])
-                content_html = f"{job['title']}<br>\n"
-                content_html += f"Apply: <a href='{job['apply_link']}'>Apply Link</a><br>\n"
-                content_html += f"Locations: {job['location']}<br>\n"
-                content_html += f"Time Type: {job['time_type']}<br>\n"
-                content_html += f"Posted On: {job['posted_text']}<br>\n"
-                content_html += f"Time Left to Apply: {job['time_left_to_apply']}<br>\n"
-                content_html += f"Job Requisition ID: {job['job_req_id']}<br>\n"
-                content_html += f"<br>\n{job['description']}<br>\n"
-                content_html += f"Skills: {', '.join(job['skills'])}<br>\n"
-                content_html += f"Experience: {job['experience']}<br>\n"
-                logger.info(f"Creating post for: {post_title}")
-                try:
-                    post = create_post(post_title, content_html, logo_url)
-                    if post:
-                        logger.info(f"Posted! {post_title}")
-                        posted_count += 1
-                    delay = random.uniform(30, 60)
-                    logger.info(f"Waiting {delay:.2f} seconds before next post...")
-                    time.sleep(delay)
-                except Exception as e:
-                    logger.error(f"Failed to post {post_title}: {str(e)}")
+    for company in COMPANIES:
+        logger.info(f"Processing {company['name']}...")
+        jobs = fetch_past_jobs(company['name'], company['url'], target_date)
+        for job in jobs:
+            post_title = generate_post_title(job)
+            if check_existing_post(post_title, job['apply_link']):
+                logger.info(f"Skipping {post_title} as it already exists.")
+                continue
+            logo_url = get_company_logo(company['name'])
+            content_html = f"{job['title']}<br>\n"
+            content_html += f"Apply: <a href='{job['apply_link']}'>Apply Link</a><br>\n"
+            content_html += f"Locations: {job['location']}<br>\n"
+            content_html += f"Time Type: {job['time_type']}<br>\n"
+            content_html += f"Posted On: {job['posted_text']}<br>\n"
+            content_html += f"Time Left to Apply: {job['time_left_to_apply']}<br>\n"
+            content_html += f"Job Requisition ID: {job['job_req_id']}<br>\n"
+            content_html += f"<br>\n{job['description']}<br>\n"
+            content_html += f"Skills: {', '.join(job['skills'])}<br>\n"
+            content_html += f"Experience: {job['experience']}<br>\n"
+            logger.info(f"Creating post for: {post_title}")
+            try:
+                post = create_post(post_title, content_html, logo_url)
+                if post:
+                    logger.info(f"Posted! {post_title}")
+                    posted_count += 1
+            except Exception as e:
+                logger.error(f"Failed to post {post_title}: {str(e)}")
 
-        logger.info(f"Finished cycle! {posted_count} posts created.")
-        logger.info(f"Sleeping for {SLEEP_SECONDS} seconds...")
-        time.sleep(SLEEP_SECONDS)
+    logger.info(f"Finished cycle! {posted_count} posts created.")
 
 if __name__ == '__main__':
     main()
