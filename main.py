@@ -10,7 +10,7 @@ import logging
 
 # ----- CONFIG -----
 INDIA_COUNTRY_FACET_ID = "c4f78be1a8f14da0ab49ce1162348a5e"  # Standard Workday facet ID for India
-BACKEND_URL = os.environ.get('BACKEND_URL', "http://localhost:3000/posts")  # URL of the Node.js backend
+BACKEND_URL = os.environ.get('BACKEND_URL', "https://autopostnodejs.vercel.app/posts")  # URL of the Node.js backend
 SLEEP_SECONDS = int(os.environ.get('SLEEP_SECONDS', 3600))  # Sleep time between cycles in seconds
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
