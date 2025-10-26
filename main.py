@@ -7,7 +7,7 @@ import time
 import random
 from urllib.parse import urlparse
 import logging
-from flask import Flask
+from flask import Flask, jsonify
 
 # ----- CONFIG -----
 INDIA_COUNTRY_FACET_ID = "c4f78be1a8f14da0ab49ce1162348a5e"  # Standard Workday facet ID for India
@@ -286,13 +286,14 @@ def generate_post_title(job):
     else:
         return f"{base_title} - ({exp_str})"
 
-def create_post(title, content_html, logo_url=None, max_retries=3, retry_delay=60):
+def create_post(title, content_html, logo_url=None, company_name=None, max_retries=3, retry_delay=60):
     for attempt in range(max_retries):
         try:
             payload = {
                 "title": title,
                 "description": content_html,
-                "company_logo": logo_url
+                "company_logo": logo_url,
+                "company_name": company_name
             }
             response = requests.post(BACKEND_URL, json=payload, timeout=10)
             if response.status_code == 201:
@@ -334,7 +335,7 @@ def run_scrape():
             content_html += f"Experience: {job['experience']}<br>\n"
             logger.info(f"Creating post for: {post_title}")
             try:
-                post = create_post(post_title, content_html, logo_url)
+                post = create_post(post_title, content_html, logo_url, company['name'])
                 if post:
                     logger.info(f"Posted! {post_title}")
                     posted_count += 1
@@ -342,16 +343,20 @@ def run_scrape():
                 logger.error(f"Failed to post {post_title}: {str(e)}")
 
     logger.info(f"Finished cycle! {posted_count} posts created.")
-    return posted_count
+    return {"status": "success", "posted_count": posted_count}
 
 @app.route('/scrape', methods=['GET'])
 def scrape_jobs():
-    posted_count = run_scrape()
-    return f"Scraping completed! {posted_count} posts created.", 200
+    try:
+        result = run_scrape()
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error in scrape endpoint: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/', methods=['GET'])
-def home():
-    return "Job Scraper API is running. Use /scrape to trigger job scraping.", 200
+def health_check():
+    return jsonify({"status": "healthy"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
