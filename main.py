@@ -7,6 +7,7 @@ import time
 import random
 from urllib.parse import urlparse
 import logging
+from flask import Flask
 
 # ----- CONFIG -----
 INDIA_COUNTRY_FACET_ID = "c4f78be1a8f14da0ab49ce1162348a5e"  # Standard Workday facet ID for India
@@ -14,6 +15,8 @@ BACKEND_URL = os.environ.get('BACKEND_URL', "https://autopostnodejs.vercel.app/p
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
 
 # List of companies (same as original)
 COMPANIES = [
@@ -60,7 +63,19 @@ COMPANIES = [
     {"name": "AstraZeneca", "url": "https://astrazeneca.wd3.myworkdayjobs.com/Careers"},
     {"name": "Nexstar", "url": "https://nexstar.wd5.myworkdayjobs.com/nexstar"},
     {"name": "Samsung", "url": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers"},
-    {"name": "Warner Bros", "url": "https://warnerbros.wd5.myworkdayjobs.com/global"}
+    {"name": "Warner Bros", "url": "https://warnerbros.wd5.myworkdayjobs.com/global"},
+    
+    {"name": "Hitachi", "url": "https://hitachi.wd1.myworkdayjobs.com/hitachi"},
+    {"name": "Ciena", "url": "https://ciena.wd5.myworkdayjobs.com/Careers"},
+    {"name": "BDX", "url": "https://bdx.wd1.myworkdayjobs.com/EXTERNAL_CAREER_SITE_INDIA"},
+    {"name": "Cengage", "url": "https://cengage.wd5.myworkdayjobs.com/CengageIndiaCareers"},
+    {"name": "Pfizer", "url": "https://pfizer.wd1.myworkdayjobs.com/PfizerCareers"},
+    {"name": "Availity", "url": "https://availity.wd1.myworkdayjobs.com/Availity_Careers_India"},
+    {"name": "Wells Fargo", "url": "https://wd1.myworkdaysite.com/recruiting/wf/WellsFargoJobs"},
+    {"name": "Motorola Solutions", "url": "https://motorolasolutions.wd5.myworkdayjobs.com/Careers"},
+    {"name": "2020 Companies", "url": "https://2020companies.wd1.myworkdayjobs.com/External_Careers"},
+    {"name": "Kyndryl", "url": "https://kyndryl.wd5.myworkdayjobs.com/KyndrylProfessionalCareers"},
+    {"name": "IFF", "url": "https://iff.wd5.myworkdayjobs.com/en-US/iff_careers"}
 ]
 
 def generate_auto_tags(title):
@@ -292,7 +307,7 @@ def create_post(title, content_html, logo_url=None, max_retries=3, retry_delay=6
     logger.error(f"Failed to post {title} after {max_retries} attempts.")
     return None
 
-def main():
+def run_scrape():
     target_date = datetime.date.today().isoformat()
     logger.info(f"Fetching jobs posted today ({target_date})...")
     random.shuffle(COMPANIES)
@@ -327,6 +342,16 @@ def main():
                 logger.error(f"Failed to post {post_title}: {str(e)}")
 
     logger.info(f"Finished cycle! {posted_count} posts created.")
+    return posted_count
+
+@app.route('/scrape', methods=['GET'])
+def scrape_jobs():
+    posted_count = run_scrape()
+    return f"Scraping completed! {posted_count} posts created.", 200
+
+@app.route('/', methods=['GET'])
+def home():
+    return "Job Scraper API is running. Use /scrape to trigger job scraping.", 200
 
 if __name__ == '__main__':
-    main()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
