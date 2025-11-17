@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: firstjobly-scraper
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    autoDeploy: true
+
+    envVars:
+      BACKEND_URL: "https://autopostnodejs.vercel.app/posts"
+      PORT: "10000"
+
+    # Background thread runs every 5 mins
+    # + Render Cron as backup
+    schedules:
+      - name: "Scrape 6AM-12PM IST"
+        cron: "*/5 0-11 * * *"
+        cronTimezone: "Asia/Kolkata"
+
+      - name: "Scrape 12PM-6PM IST"
+        cron: "*/5 6-11 * * *"
+        cronTimezone: "Asia/Kolkata"
+
+    healthCheckPath: /
