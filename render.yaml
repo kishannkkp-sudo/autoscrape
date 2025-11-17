@@ -5,21 +5,19 @@ services:
     region: oregon
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
+    startCommand: gunicorn main:app
     autoDeploy: true
 
     envVars:
       BACKEND_URL: "https://autopostnodejs.vercel.app/posts"
       PORT: "10000"
 
-    # Background thread runs every 5 mins
-    # + Render Cron as backup
+    # Runs every 5 mins from 6 AM to 6 PM IST
     schedules:
-      - name: "Scrape 6AM-12PM IST"
+      - name: "6AM-12PM IST Scrape"
         cron: "*/5 0-11 * * *"
         cronTimezone: "Asia/Kolkata"
-
-      - name: "Scrape 12PM-6PM IST"
+      - name: "12PM-6PM IST Scrape"
         cron: "*/5 6-11 * * *"
         cronTimezone: "Asia/Kolkata"
 

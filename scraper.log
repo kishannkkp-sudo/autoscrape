@@ -1,0 +1,6 @@
+2025-11-17 17:02:11,359 - INFO - SCRAPING STARTED at 17:02 IST
+2025-11-17 17:02:11,483 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:10000
+ * Running on http://10.219.210.158:10000
+2025-11-17 17:02:11,495 - INFO - [33mPress CTRL+C to quit[0m
